@@ -6,17 +6,11 @@ import (
 )
 
 const (
-	CAFile               = "ca.pem"
-	ServerCertFile       = "server.pem"
-	ServerKeyFile        = "server-key.pem"
-	ClientCertFile       = "client.pem"
-	ClientKeyFile        = "client-key.pem"
-	GeoClientCertFile    = "geo-client.pem"
-	GeoClientKeyFile     = "geo-client-key.pem"
-	NobodyClientCertFile = "nobody-client.pem"
-	NobodyClientKeyFile  = "nobody-client-key.pem"
-	ACLModelFile         = "model.conf"
-	ACLPolicyFile        = "policy.csv"
+	CAFile            = "ca.pem"
+	ServerCertFile    = "server.pem"
+	ServerKeyFile     = "server-key.pem"
+	GeoClientCertFile = "geo-client.pem"
+	GeoClientKeyFile  = "geo-client-key.pem"
 )
 
 type FileType string
