@@ -3,9 +3,9 @@ module github.com/comfforts/comff-geo-client
 go 1.20
 
 require (
-	github.com/comfforts/comff-geo v0.1.18
+	github.com/comfforts/comff-geo v0.1.19
 	github.com/comfforts/errors v0.1.1
-	github.com/comfforts/logger v0.1.12
+	github.com/comfforts/logger v0.1.13
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.54.0
