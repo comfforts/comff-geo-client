@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	CAFile            = "ca.pem"
-	ServerCertFile    = "server.pem"
-	ServerKeyFile     = "server-key.pem"
-	GeoClientCertFile = "geo-client.pem"
-	GeoClientKeyFile  = "geo-client-key.pem"
+	CAFile         = "ca.pem"
+	ServerCertFile = "server.pem"
+	ServerKeyFile  = "server-key.pem"
+	ClientCertFile = "client.pem"
+	ClientKeyFile  = "client-key.pem"
 )
 
 type FileType string
