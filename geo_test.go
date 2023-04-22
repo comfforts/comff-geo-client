@@ -5,9 +5,11 @@ import (
 	"math"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	comffC "github.com/comfforts/comff-constants"
 	geo_v1 "github.com/comfforts/comff-geo/api/v1"
 	"github.com/comfforts/logger"
-	"github.com/stretchr/testify/require"
 )
 
 const TEST_DIR = "data"
@@ -56,8 +58,8 @@ func testGeoLocate(t *testing.T, gc Client) {
 	defer cancel()
 
 	resp, err := gc.GeoLocate(ctx, &geo_v1.GeoRequest{
-		PostalCode: "94952",
-		Country:    "USA",
+		PostalCode: comffC.P94952,
+		Country:    comffC.US,
 	})
 	require.NoError(t, err)
 	require.Equal(t, 38, int(math.Round(float64(resp.Point.Latitude))))
@@ -102,16 +104,16 @@ func testAddressCRUD(t *testing.T, gc Client) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	rqstr, refId, addrType, st, city, zip, state, cntry := "address-crud-test@gmail.com", "cR34t3a44r", geo_v1.AddressType_SHOP, "212 2nd St.", "Petaluma", "94952", "California", "US"
+	rqstr, refId, st := "address-crud-test@gmail.com", "cR34t3a44r", "212 2nd St."
 	addResp, err := gc.AddAddress(ctx, &geo_v1.AddressRequest{
 		RequestedBy: rqstr,
 		RefId:       refId,
-		Type:        addrType,
+		Type:        geo_v1.AddressType_SHOP,
 		Street:      st,
-		City:        city,
-		PostalCode:  zip,
-		State:       state,
-		Country:     cntry,
+		City:        comffC.PETALUMA,
+		PostalCode:  comffC.P94952,
+		State:       comffC.CA,
+		Country:     comffC.US,
 	})
 	require.NoError(t, err)
 	require.Equal(t, refId, addResp.Address.RefId)
