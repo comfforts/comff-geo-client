@@ -69,8 +69,8 @@ type geoClient struct {
 
 func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, error) {
 	tlsConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CertFile: config.CertFile(config.ClientCertFile),
-		KeyFile:  config.CertFile(config.ClientKeyFile),
+		CertFile: config.CertFile(config.GeoClientCertFile),
+		KeyFile:  config.CertFile(config.GeoClientKeyFile),
 		CAFile:   config.CertFile(config.CAFile),
 		Server:   false,
 	})
