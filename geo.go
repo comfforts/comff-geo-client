@@ -3,6 +3,7 @@ package geo
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -15,8 +16,8 @@ import (
 	"github.com/comfforts/comff-geo-client/internal/config"
 )
 
-const SERVICE_PORT = 54051
-const SERVICE_DOMAIN = "127.0.0.1"
+const DEFAULT_SERVICE_PORT = "54051"
+const DEFAULT_SERVICE_HOST = "127.0.0.1"
 
 type ContextKey string
 
@@ -83,8 +84,16 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 		grpc.WithTransportCredentials(tlsCreds),
 	}
 
-	serviceAddr := fmt.Sprintf("%s:%d", SERVICE_DOMAIN, SERVICE_PORT)
+	servicePort := os.Getenv("GEO_SERVICE_PORT")
+	if servicePort == "" {
+		servicePort = DEFAULT_SERVICE_PORT
+	}
+	serviceHost := os.Getenv("GEO_SERVICE_HOST")
+	if serviceHost == "" {
+		serviceHost = DEFAULT_SERVICE_HOST
+	}
 
+	serviceAddr := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(serviceAddr, opts...)
 	if err != nil {
 		logger.Error("client failed to connect", zap.Error(err))
