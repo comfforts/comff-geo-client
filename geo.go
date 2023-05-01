@@ -10,10 +10,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	config "github.com/comfforts/comff-config"
 	api "github.com/comfforts/comff-geo/api/v1"
 	"github.com/comfforts/logger"
-
-	"github.com/comfforts/comff-geo-client/internal/config"
 )
 
 const DEFAULT_SERVICE_PORT = "54051"
@@ -69,11 +68,8 @@ type geoClient struct {
 }
 
 func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, error) {
-	tlsConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CertFile: config.CertFile(config.GeoClientCertFile),
-		KeyFile:  config.CertFile(config.GeoClientKeyFile),
-		CAFile:   config.CertFile(config.CAFile),
-		Server:   false,
+	tlsConfig, err := config.SetupTLSConfig(&config.ConfigOpts{
+		Target: config.GEO_CLIENT,
 	})
 	if err != nil {
 		logger.Error("error setting geo client TLS", zap.Error(err))
