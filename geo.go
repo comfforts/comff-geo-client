@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 
 	config "github.com/comfforts/comff-config"
 	api "github.com/comfforts/comff-geo/api/v1"
@@ -36,6 +37,7 @@ type ClientOption struct {
 	DialTimeout      time.Duration
 	KeepAlive        time.Duration
 	KeepAliveTimeout time.Duration
+	Caller           string
 }
 
 type Client interface {
@@ -65,6 +67,7 @@ type geoClient struct {
 	logger logger.AppLogger
 	client api.GeoClient
 	conn   *grpc.ClientConn
+	opts   *ClientOption
 }
 
 func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, error) {
@@ -72,7 +75,7 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 		Target: config.GEO_CLIENT,
 	})
 	if err != nil {
-		logger.Error("error setting geo client TLS", zap.Error(err))
+		logger.Error("error setting geo client TLS", zap.Error(err), zap.String("client", clientOpts.Caller))
 		return nil, err
 	}
 	tlsCreds := credentials.NewTLS(tlsConfig)
@@ -92,7 +95,7 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 	serviceAddr := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(serviceAddr, opts...)
 	if err != nil {
-		logger.Error("client failed to connect", zap.Error(err))
+		logger.Error("client failed to connect", zap.Error(err), zap.String("client", clientOpts.Caller))
 		return nil, err
 	}
 
@@ -102,136 +105,137 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 		client: client,
 		logger: logger,
 		conn:   conn,
+		opts:   clientOpts,
 	}, nil
 }
 
 func (gc *geoClient) GeoLocate(ctx context.Context, req *api.GeoRequest, opts ...grpc.CallOption) (*api.GeoResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GeoLocate(ctx, req)
 	if err != nil {
-		gc.logger.Error("error geo locating", zap.Error(err))
+		gc.logger.Error("error geo locating", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) AddGeo(ctx context.Context, req *api.AddGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.AddGeoLocation(ctx, req)
 	if err != nil {
-		gc.logger.Error("error adding geo location", zap.Error(err))
+		gc.logger.Error("error adding geo location", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) GetGeo(ctx context.Context, req *api.GetGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GetGeoLocation(ctx, req)
 	if err != nil {
-		gc.logger.Error("error fetching geo location", zap.Error(err))
+		gc.logger.Error("error fetching geo location", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) GetGeos(ctx context.Context, req *api.GetGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationsResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GetGeoLocations(ctx, req)
 	if err != nil {
-		gc.logger.Error("error fetching geo locations", zap.Error(err))
+		gc.logger.Error("error fetching geo locations", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) DeleteGeo(ctx context.Context, req *api.DeleteGeoLocationRequest, opts ...grpc.CallOption) (*api.DeleteResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.DeleteGeoLocation(ctx, req)
 	if err != nil {
-		gc.logger.Error("error deleting geo location", zap.Error(err))
+		gc.logger.Error("error deleting geo location", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) AddAddress(ctx context.Context, req *api.AddressRequest, opts ...grpc.CallOption) (*api.AddressResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.AddAddress(ctx, req)
 	if err != nil {
-		gc.logger.Error("error adding address", zap.Error(err))
+		gc.logger.Error("error adding address", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) UpdateAddress(ctx context.Context, req *api.AddressRequest, opts ...grpc.CallOption) (*api.AddressResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.UpdateAddress(ctx, req)
 	if err != nil {
-		gc.logger.Error("error updating address", zap.Error(err))
+		gc.logger.Error("error updating address", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) GetAddress(ctx context.Context, req *api.GetAddressRequest, opts ...grpc.CallOption) (*api.AddressResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GetAddress(ctx, req)
 	if err != nil {
-		gc.logger.Error("error fetching address", zap.Error(err))
+		gc.logger.Error("error fetching address", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) GetAddresses(ctx context.Context, req *api.GetAddressesRequest, opts ...grpc.CallOption) (*api.AddressesResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GetAddresses(ctx, req)
 	if err != nil {
-		gc.logger.Error("error fetching addresses", zap.Error(err))
+		gc.logger.Error("error fetching addresses", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) GetAddressesByIds(ctx context.Context, req *api.GetAddressesRequest, opts ...grpc.CallOption) (*api.AddressesResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.GetAddressesByIds(ctx, req)
 	if err != nil {
-		gc.logger.Error("error fetching addresses", zap.Error(err))
+		gc.logger.Error("error fetching addresses", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
 }
 
 func (gc *geoClient) DeleteAddress(ctx context.Context, req *api.DeleteAddressRequest, opts ...grpc.CallOption) (*api.DeleteResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
 	defer cancel()
 
 	resp, err := gc.client.DeleteAddress(ctx, req)
 	if err != nil {
-		gc.logger.Error("error deleting address", zap.Error(err))
+		gc.logger.Error("error deleting address", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
@@ -239,8 +243,18 @@ func (gc *geoClient) DeleteAddress(ctx context.Context, req *api.DeleteAddressRe
 
 func (gc *geoClient) Close() error {
 	if err := gc.conn.Close(); err != nil {
-		gc.logger.Error("error closing shop client connection", zap.Error(err))
+		gc.logger.Error("error closing shop client connection", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return err
 	}
 	return nil
+}
+
+func (gc *geoClient) contextWithOptions(ctx context.Context, opts *ClientOption) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(ctx, gc.opts.DialTimeout)
+	if gc.opts.Caller != "" {
+		md := metadata.New(map[string]string{"service-client": gc.opts.Caller})
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+
+	return ctx, cancel
 }

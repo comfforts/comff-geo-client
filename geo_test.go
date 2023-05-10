@@ -40,7 +40,10 @@ func setup(t *testing.T, logger logger.AppLogger) (
 ) {
 	t.Helper()
 
-	gc, err := NewClient(logger, NewDefaultClientOption())
+	clientOpts := NewDefaultClientOption()
+	clientOpts.Caller = "geo-client-test"
+
+	gc, err := NewClient(logger, clientOpts)
 	require.NoError(t, err)
 
 	return gc, func() {
@@ -53,8 +56,7 @@ func setup(t *testing.T, logger logger.AppLogger) (
 func testGeoLocate(t *testing.T, gc Client) {
 	t.Helper()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	resp, err := gc.GeoLocate(ctx, &geo_v1.GeoRequest{
@@ -69,8 +71,7 @@ func testGeoLocate(t *testing.T, gc Client) {
 func testGeoCRUD(t *testing.T, gc Client) {
 	t.Helper()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	refId, hash := "geo-crud-test@gmail.com", "cR34t3G30"
@@ -100,8 +101,7 @@ func testGeoCRUD(t *testing.T, gc Client) {
 func testAddressCRUD(t *testing.T, gc Client) {
 	t.Helper()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	rqstr, refId, st := "address-crud-test@gmail.com", "cR34t3a44r", "212 2nd St."
