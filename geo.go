@@ -95,12 +95,12 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 	serviceAddr := fmt.Sprintf("%s:%s", serviceHost, servicePort)
 	conn, err := grpc.Dial(serviceAddr, opts...)
 	if err != nil {
-		logger.Error("client failed to connect", zap.Error(err), zap.String("client", clientOpts.Caller))
+		logger.Error("geo client failed to connect", zap.Error(err), zap.String("client", clientOpts.Caller))
 		return nil, err
 	}
 
 	client := api.NewGeoClient(conn)
-
+	logger.Info("geo client connected", zap.String("host", serviceHost), zap.String("port", servicePort))
 	return &geoClient{
 		client: client,
 		logger: logger,
