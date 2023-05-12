@@ -72,16 +72,16 @@ type geoClient struct {
 }
 
 func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, error) {
+	if clientOpts.Caller == "" {
+		clientOpts.Caller = DefaultClientName
+	}
+
 	tlsConfig, err := config.SetupTLSConfig(&config.ConfigOpts{
 		Target: config.GEO_CLIENT,
 	})
 	if err != nil {
 		logger.Error("error setting geo client TLS", zap.Error(err), zap.String("client", clientOpts.Caller))
 		return nil, err
-	}
-
-	if clientOpts.Caller == "" {
-		clientOpts.Caller = DefaultClientName
 	}
 
 	tlsCreds := credentials.NewTLS(tlsConfig)
