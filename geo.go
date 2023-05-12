@@ -32,6 +32,7 @@ var (
 )
 
 const GeoClientContextKey = ContextKey("geo-client")
+const DefaultClientName = "comfforts-geo-client"
 
 type ClientOption struct {
 	DialTimeout      time.Duration
@@ -74,6 +75,11 @@ func NewClient(logger logger.AppLogger, clientOpts *ClientOption) (*geoClient, e
 	tlsConfig, err := config.SetupTLSConfig(&config.ConfigOpts{
 		Target: config.GEO_CLIENT,
 	})
+
+	if clientOpts.Caller == "" {
+		clientOpts.Caller = DefaultClientName
+	}
+
 	if err != nil {
 		logger.Error("error setting geo client TLS", zap.Error(err), zap.String("client", clientOpts.Caller))
 		return nil, err
@@ -243,7 +249,7 @@ func (gc *geoClient) DeleteAddress(ctx context.Context, req *api.DeleteAddressRe
 
 func (gc *geoClient) Close() error {
 	if err := gc.conn.Close(); err != nil {
-		gc.logger.Error("error closing shop client connection", zap.Error(err), zap.String("client", gc.opts.Caller))
+		gc.logger.Error("error closing geo client connection", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return err
 	}
 	return nil
