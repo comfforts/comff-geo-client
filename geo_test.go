@@ -21,9 +21,10 @@ func TestGeoClient(t *testing.T) {
 		t *testing.T,
 		gc Client,
 	){
-		"geo location, succeeds": testGeoLocate,
-		"geo CRUD, succeeds":     testGeoCRUD,
-		"address CRUD, succeeds": testAddressCRUD,
+		"geo location, succeeds":                     testGeoLocate,
+		"geo CRUD, succeeds":                         testGeoCRUD,
+		"address CRUD, succeeds":                     testAddressCRUD,
+		"get routes by addrStr/latLongStr, succeeds": testGetRouteAddrStr,
 	} {
 		t.Run(scenario, func(t *testing.T) {
 			gc, teardown := setup(t, logger)
@@ -66,6 +67,101 @@ func testGeoLocate(t *testing.T, gc Client) {
 	require.NoError(t, err)
 	require.Equal(t, 38, int(math.Round(float64(resp.Point.Latitude))))
 	require.Equal(t, -123, int(math.Round(float64(resp.Point.Longitude))))
+}
+
+func testGetRouteAddrStr(t *testing.T, gc Client) {
+	t.Helper()
+
+	start := &geo_v1.GeoRequest{
+		PostalCode: "95476",
+		Country:    comffC.US,
+		Street:     "641 Ave Del Oro",
+		City:       "Sonoma",
+		State:      comffC.CA,
+	}
+
+	addr := &geo_v1.GeoRequest{
+		PostalCode: "95476",
+		Country:    comffC.US,
+		Street:     "20511 Broadway",
+		City:       "Sonoma",
+		State:      comffC.CA,
+	}
+
+	end := &geo_v1.GeoRequest{
+		PostalCode: "95476",
+		Country:    comffC.US,
+		Street:     "110 W Spain St",
+		City:       "Sonoma",
+		State:      comffC.CA,
+	}
+
+	origins := []*geo_v1.GeoRequest{}
+	dests := []*geo_v1.GeoRequest{}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sPt, err := gc.GeoLocate(ctx, start)
+	require.NoError(t, err)
+	origins = append(origins, &geo_v1.GeoRequest{
+		Latitude:   sPt.Point.Latitude,
+		Longitude:  sPt.Point.Longitude,
+		Street:     start.Street,
+		City:       start.City,
+		State:      start.State,
+		PostalCode: start.PostalCode,
+		Country:    start.Country,
+	})
+
+	aPt, err := gc.GeoLocate(ctx, addr)
+	require.NoError(t, err)
+	origins = append(origins, &geo_v1.GeoRequest{
+		Latitude:   aPt.Point.Latitude,
+		Longitude:  aPt.Point.Longitude,
+		Street:     addr.Street,
+		City:       addr.City,
+		State:      addr.State,
+		PostalCode: addr.PostalCode,
+		Country:    addr.Country,
+	})
+	dests = append(dests, &geo_v1.GeoRequest{
+		Latitude:   aPt.Point.Latitude,
+		Longitude:  aPt.Point.Longitude,
+		Street:     addr.Street,
+		City:       addr.City,
+		State:      addr.State,
+		PostalCode: addr.PostalCode,
+		Country:    addr.Country,
+	})
+
+	ePt, err := gc.GeoLocate(ctx, end)
+	require.NoError(t, err)
+	dests = append(dests, &geo_v1.GeoRequest{
+		Latitude:   ePt.Point.Latitude,
+		Longitude:  ePt.Point.Longitude,
+		Street:     end.Street,
+		City:       end.City,
+		State:      end.State,
+		PostalCode: end.PostalCode,
+		Country:    end.Country,
+	})
+
+	resp, err := gc.GetGeoRoute(ctx, &geo_v1.GeoRouteRequest{
+		Origins:      origins,
+		Destinations: dests,
+		IsLatLng:     true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, len(resp.RouteLegs) == 4)
+
+	resp, err = gc.GetGeoRoute(ctx, &geo_v1.GeoRouteRequest{
+		Origins:      origins,
+		Destinations: dests,
+		IsLatLng:     false,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, len(resp.RouteLegs) == 4)
 }
 
 func testGeoCRUD(t *testing.T, gc Client) {

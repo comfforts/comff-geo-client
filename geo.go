@@ -43,6 +43,8 @@ type ClientOption struct {
 
 type Client interface {
 	GeoLocate(ctx context.Context, req *api.GeoRequest, opts ...grpc.CallOption) (*api.GeoResponse, error)
+	GetGeoRoute(ctx context.Context, req *api.GeoRouteRequest, opts ...grpc.CallOption) (*api.RouteResponse, error)
+	GetAddressRoute(ctx context.Context, req *api.AddressRouteRequest, opts ...grpc.CallOption) (*api.RouteResponse, error)
 	AddGeo(ctx context.Context, req *api.AddGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationResponse, error)
 	GetGeo(ctx context.Context, req *api.GetGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationResponse, error)
 	GetGeos(ctx context.Context, req *api.GetGeoLocationRequest, opts ...grpc.CallOption) (*api.GeoLocationsResponse, error)
@@ -122,6 +124,30 @@ func (gc *geoClient) GeoLocate(ctx context.Context, req *api.GeoRequest, opts ..
 	resp, err := gc.client.GeoLocate(ctx, req)
 	if err != nil {
 		gc.logger.Error("error geo locating", zap.Error(err), zap.String("client", gc.opts.Caller))
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (gc *geoClient) GetGeoRoute(ctx context.Context, req *api.GeoRouteRequest, opts ...grpc.CallOption) (*api.RouteResponse, error) {
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
+	defer cancel()
+
+	resp, err := gc.client.GetGeoRoute(ctx, req)
+	if err != nil {
+		gc.logger.Error("error fetching routes", zap.Error(err), zap.String("client", gc.opts.Caller))
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (gc *geoClient) GetAddressRoute(ctx context.Context, req *api.AddressRouteRequest, opts ...grpc.CallOption) (*api.RouteResponse, error) {
+	ctx, cancel := gc.contextWithOptions(ctx, gc.opts)
+	defer cancel()
+
+	resp, err := gc.client.GetAddressRoute(ctx, req)
+	if err != nil {
+		gc.logger.Error("error fetching routes", zap.Error(err), zap.String("client", gc.opts.Caller))
 		return nil, err
 	}
 	return resp, nil
