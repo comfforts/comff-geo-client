@@ -21,6 +21,7 @@ func TestGeoClient(t *testing.T) {
 		t *testing.T,
 		gc Client,
 	){
+		"get servers, succeeds":                      testGetServers,
 		"geo location, succeeds":                     testGeoLocate,
 		"geo CRUD, succeeds":                         testGeoCRUD,
 		"address CRUD, succeeds":                     testAddressCRUD,
@@ -32,7 +33,6 @@ func TestGeoClient(t *testing.T) {
 			fn(t, gc)
 		})
 	}
-
 }
 
 func setup(t *testing.T, logger logger.AppLogger) (
@@ -52,6 +52,16 @@ func setup(t *testing.T, logger logger.AppLogger) (
 		err := gc.Close()
 		require.NoError(t, err)
 	}
+}
+
+func testGetServers(t *testing.T, gc Client) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	resp, err := gc.GetServers(ctx, &geo_v1.GetServersRequest{})
+	require.NoError(t, err)
+	t.Log("resp", resp)
+	require.Equal(t, true, len(resp.Servers) > 0)
 }
 
 func testGeoLocate(t *testing.T, gc Client) {
