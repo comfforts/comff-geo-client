@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/comfforts/comff-config v0.0.22
 	github.com/comfforts/comff-constants v0.0.11
-	github.com/comfforts/comff-geo v0.2.39
+	github.com/comfforts/comff-geo v0.2.41
 	github.com/comfforts/logger v0.1.13
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.25.0
